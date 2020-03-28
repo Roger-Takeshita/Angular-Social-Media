@@ -56,21 +56,21 @@
 * To create a new componet, we create inside the `src/app`.
 * There we create the component structure (folder and files)
 
-```Bash
-  touch src/app/posts/post-create/post-create.components.html
-  touch src/app/posts/post-create/post-create.components.ts
-  touch src/app/posts/post-create/post-create.components.css
-```
+  ```Bash
+    touch src/app/posts/post-create/post-create.components.html
+    touch src/app/posts/post-create/post-create.components.ts
+    touch src/app/posts/post-create/post-create.components.css
+  ```
 
-```Bash
-  .
-  └── app
-      └── posts
-          └── post-create
-              ├── post-create.components.css
-              ├── post-create.components.html
-              └── post-create.components.ts
-```
+  ```Bash
+    .
+    └── app
+        └── posts
+            └── post-create
+                ├── post-create.components.css
+                ├── post-create.components.html
+                └── post-create.components.ts
+  ```
 
 * In `post-create.components.html`
   * Create a simple h2 tag, just to display anything
@@ -274,7 +274,7 @@
 
   * In `post-create.component.ts`
 
-```JavaScript
+  ```JavaScript
     export class PostCreateComponent {              //! 2) Export our class
         enteredValue = '';                              //+ 2.3) creating a new variable to store the entered value
         newPost = '';                                   //+ 2.1) We create a variable to hold the information from the text area
@@ -283,7 +283,7 @@
             this.newPost = this.enteredValue;           
         }
     }
-```
+  ```
 
 * **ngModel** by default won't work
 * It's a feature that is not inclued in the core angulra package
@@ -458,19 +458,317 @@
     ],
   ```
 
-<h2 id='postlistcomponent'>Post List Component</h2>
+<h2 id='outputdata'>Output Data From Component</h2>
+
+* in `post-create.component.ts`
+  * To ouput data from a component, we can use the property and event binding
+  * We can emit our own events
+  * We can send data into a component
+
+  ```TypeScript
+      import { Component, EventEmitter, Output } from '@angular/core';                    //! 1) Import angular component decorator
+                                                                                          //! 3) Import EventEmitter - to create an event binding
+                                                                                          //! 4) Import Output decorator - to make angular aware that we have an event that can be listened outside of this component
+                                                                                          //!    We have to do this manualy because we rarely want to listen to events from the outside
+
+                                                                                              //+ 1.1) Component decorator to attach to a class to mark as component
+                                                                                              //+ 1.2) Then angular scans for certain features and uses as a component
+      @Component({                                                                            //+ 1.3) Component decorator, the component decorator takes some config in the form of java script object which we pass to it
+                                                                                              //+      A typical component has a Selector and a Template
+          selector: 'app-post-create',                                                            //- 1.3.1) Selector which allows us to use this component
+          templateUrl: './post-create.component.html',                                            //- 1.3.2) Template
+          styleUrls: ['./post-create.component.css']                                              //- 1.3.3) Style css
+      })
+
+      export class PostCreateComponent {                                                  //! 2) Export our class
+          enteredTitle = "";                                                                  //+ 2.1) Create a new variable to hold the title 
+          enteredContent = '';                                                                //+ 2.2) Re-name this variable so we don't confuse ourselves
+          @Output() postCreated = new EventEmitter();                                         //+ 3.1) Create a new event binding
+                                                                                              //+ 4.1) @Output - to make angular aware that we have an event that can be listened outside of this component
+          onAddPost() {
+              const post = { title: this.enteredTitle, content: this.enteredContent };
+              this.postCreated.emit(post);                                                    //+ 3.2) Then we call the postCreated.emit() to emit a new event             
+          }
+      }
+  ```
+
+* in `post-create.component.html`
+  
+* Bind the new **two-way binding** to the `input`
+* Update the `textarea` and `button` eventListener
+  
+  ```HTML
+      <mat-card>
+          <mat-form-field>
+              <input matInput type="text" [(ngModel)]="enteredTitle">
+          </mat-form-field>
+          <mat-form-field>
+              <textarea matInput rows="6" [(ngModel)]="enteredContent"></textarea>
+          </mat-form-field>
+          <button mat-raised-button color="accent" (click)="onAddPost()">Save Post</button>
+      </mat-card>
+  ```
+
+* We need to store the posts that we are going to get from our child component
+
+* in `app.component.ts`
+  * We need to create an array to hold all the posts
+  * And we need to create a method to push to this array 
+
+  ```TypeScript
+      import { Component } from '@angular/core';
+
+      @Component({
+        selector: 'app-root',
+        templateUrl: './app.component.html',
+        styleUrls: ['./app.component.css']
+      })
+      export class AppComponent {
+        storedPosts = [];                             //! 1) Create our store
+
+        onPostAdded(post) {                           //! 2) Create a method to push to store
+          this.storedPosts.push(post);
+        }
+      }
+  ```
+
+* Now we can access to `postCreated` in our parent component and created a store
+
+* in `app.component.html`
+* In the component that we are using the component `<app-post-create>`
+  * We now can use the event binding to listen to postCreated `(postCreated)="onPostAdded($event)`
+  * And connect to the `onPostAdded()`, the method that we created to push our data to the store
+
+  ```TypeScript
+      (postCreated)="onPostAdded($event)
+
+      // (postCreated) -> Event binding to listen to postCreated that we are outputing
+      // onPostAdded() -> Connects to the function
+      // $event        -> Gives we access to the data that we emited
+      //                  Here we get a normal DOM event object
+  ```
+
+  ```HTML
+      <app-header></app-header>
+      <main>
+          <app-post-create (postCreated)="onPostAdded($event)"></app-post-create>
+          <app-post-list"></app-post-list">
+      </main>
+  ```
+
+<h2 id='inputdata'>Input Data To Component</h2>
+
+<h3 id='postlistcomponent'>Post List Component</h3>
 
 [Go Back to Summary](#summary)
 
-```Bash
-  .
-  └── src
-      └── app
-          └── post-list
-              ├── post-list.component.css
-              ├── post-list.component.html
-              └── post-list.component.ts
-```
+* Frist lets create a post-list.component
+
+  ```Bash
+    .
+    └── src
+        └── app
+            └── posts
+                └── post-list
+                    ├── post-list.component.css
+                    ├── post-list.component.html
+                    └── post-list.component.ts
+  ```
+
+* in `post-list.component.ts`
+
+  ```TypeScript
+      import { Component} from "@angular/core";
+
+      @Component({
+          selector: 'app-post-list',
+          templateUrl: './post-list.component.html',
+          styleUrls: ['./post-list.component.css']
+      })
+      export class PostListComponent {
+          posts = [
+              { title: 'First Post', content: "This is the first post's content"},
+              { title: 'Second Post', content: "This is the secont post's content"},
+              { title: 'Third Post', content: "This is the thrid post's content"},
+              { title: 'Fourth Post', content: "This is the fourth post's content"}
+          ];
+      }
+  ```
+
+* in `post-list.component.html`
+
+  ```HTML
+      <mat-accordion multi="true" *ngIf="posts.length > 0">
+          <mat-expansion-panel *ngFor="let post of posts">
+              <mat-expansion-panel-header>
+                  {{ post.title }}
+              </mat-expansion-panel-header>
+              <p>{{ post.content }}</p>
+          </mat-expansion-panel>
+      </mat-accordion>
+      <p class="info-text mat-body-1" *ngIf="posts.length === 0">No Posts Added Yet!</p>
+  ```
+
+  * `ngModel` -> only apply to a single element
+  * `*ngFor`  -> Create a for loop statement
+
+  ```TypeScript
+      *ngFor="let your-variable of data"
+
+      // *             -> It's important
+      // your-variable -> It can be any variable/name same as "for (let item of items){}"
+      // data          -> Needs to be the same variable/name from our component
+  ```
+
+  * `*ngIf`   -> Create an if loop statement
+
+  ```TypeScript
+      *ngIf="your-condition-here"
+
+      // *                  -> It's important
+      // your-conditionhere -> could be a variable from our component or a property (.length) 
+  ```
+
+* in `post-list.component.css`
+
+  ```CSS
+    :host {
+        display: block;
+        margin-top: 1rem;
+    }
+
+    .info-text {
+        text-align: center;
+    }
+  ```
+
+<h3 id='makingbindable'>Making Bindable From Outsite</h3>
+
+[Go Back to Summary](#summary)
+
+* By default the component is not bindable from outside, but we can make it bindable by adding a decorator `@Input()` to it.
+
+  ```TypeScript
+      import { Component, Input } from "@angular/core";   //! 1) Import Input
+
+      @Component({
+          selector: 'app-post-list',
+          templateUrl: './post-list.component.html',
+          styleUrls: ['./post-list.component.css']
+      })
+      export class PostListComponent {
+          @Input() posts = [];                                //+ 1.1) To make it bindable from outsid
+      }
+  ```
+
+* Now from outside we can bind the `posts` to our `post store`
+
+* in `app.component.html`
+
+  ```HTML
+      <app-header></app-header>
+      <main>
+          <app-post-create (postCreated)="onPostAdded($event)"></app-post-create>
+          <app-post-list [posts]="storedPosts"></app-post-list>
+      </main>
+  ```
+  * Now angula's chance detection will automatically detect whenever a new post is created and when it needs to render this new post
+
+<h2 id='angularpostmodel'>Angular's Post Model</h2>
+
+[Go Back to Summary](#summary)
+
+* A model is a blueprint, which allows us to define how a post looks like in our angular application.
+* This helps us to easly identify the structure of the post (title, content ...)
+* In our `src/app/posts` lets create our model
+
+  ```Bash
+      touch src/app/posts/post.model.ts
+  ```
+
+* in `post.model.ts`
+  * We'll use another TypeScript feature called `interface`
+  * An `interface` is like a **class** that defines how an object looks like, but **it can't be instatiated**
+    * It's more like a `contract`, we can use it to create our own type, to force a certain object to look like this even though we can't directly create it based on the interface
+
+  ```TypeScript
+      export interface Post {
+          title: string;                // field: type
+          content: string;              // field: type
+      }
+  ```
+  * now we can import into our components
+
+* in `app.component.ts`
+
+  ```TypeScript
+    import { Component } from '@angular/core';
+    import { Post } from './posts/post.model';      //! 3) import the Post model
+
+    @Component({
+      selector: 'app-root',
+      templateUrl: './app.component.html',
+      styleUrls: ['./app.component.css']
+    })
+    export class AppComponent {
+      storedPosts: Post[] = [];                     //! 1) Create our store
+                                                      //+ 3.1) storedPosts: Post[] = [] this is how typescript syntax defining that storePosts got an array of Posts in there
+
+      onPostAdded(post) {                           //! 2) Create a method to push to store
+        this.storedPosts.push(post);
+      }
+    }
+  ```
+
+  * if we try to add `this.storedPosts.push(3)` we will get an warning saying 
+    * >"Argument of type '3' is not assignable to parameter of type 'Post'"
+  * but this `this.storedPosts.push({title: "my new title", content:"post content"});` will work fine
+
+  * So we can update all the components that we have a post
+  * in `post-list.component.ts`
+
+  ```TypeScript
+      import { Component, Input } from "@angular/core";   //! 1) Import Input
+      import { Post } from '../post.model';               //! 2) Import the Post Model
+
+      @Component({
+          selector: 'app-post-list',
+          templateUrl: './post-list.component.html',
+          styleUrls: ['./post-list.component.css']
+      })
+      export class PostListComponent {
+          @Input() posts: Post[] = [];                        //+ 1.1) To make it bindable from outsid
+                                                              //+ 2.1) Refactor the posts to use the Post Model
+      }
+  ```
+  * in `post-create.component.ts`
+
+  ```TypeScript
+      import { Component, EventEmitter, Output } from '@angular/core';                    //! 1) Import angular component decorator
+                                                                                          //! 3) Import EventEmitter - to create an event binding
+                                                                                          //! 4) Import Output decorator - to make angular aware that we have an event that can be listened outside of this component
+                                                                                          //!    We have to do this manualy because we rarely want to listen to events from the outside
+      import { Post } from '../post.model';                                               //! 5) Import the Post Model
 
 
+                                                                                              //+ 1.1) Component decorator to attach to a class to mark as component
+                                                                                              //+ 1.2) Then angular scans for certain features and uses as a component
+      @Component({                                                                            //+ 1.3) Component decorator, the component decorator takes some config in the form of java script object which we pass to it
+                                                                                              //+      A typical component has a Selector and a Template
+          selector: 'app-post-create',                                                            //- 1.3.1) Selector which allows us to use this component
+          templateUrl: './post-create.component.html',                                            //- 1.3.2) Template
+          styleUrls: ['./post-create.component.css']                                              //- 1.3.3) Style css
+      })
 
+      export class PostCreateComponent {                                                  //! 2) Export our class
+          enteredTitle = "";                                                                  //+ 2.1) Create a new variable to hold the title 
+          enteredContent = '';                                                                //+ 2.2) Re-name this variable so we don't confuse ourselves
+          @Output() postCreated = new EventEmitter<Post>();                                   //+ 3.1) Create a new event binding
+                                                                                              //+ 5.2) <Post> we are defining the generic type - this will only emit posts, otherwise, we'll get an error
+                                                                                              //+ 4.1) @Output - to make angular aware that we have an event that can be listened outside of this component
+          onAddPost() {
+              const post: Post = { title: this.enteredTitle, content: this.enteredContent };  //+ 5.1) Refactor the post variable to use the Post Model
+              this.postCreated.emit(post);                                                    //+ 3.2) Then we call the postCreated.emit() to emit a new event             
+          }
+      }
+  ```

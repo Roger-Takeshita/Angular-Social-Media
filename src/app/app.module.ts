@@ -11,7 +11,7 @@ import { MatExpansionModule } from '@angular/material/expansion';               
 import { AppComponent } from './app.component';
 import { PostCreateComponent } from './posts/post-create/post-create.component'; //! 1) We need to import the component (the class that we exported)
 import { HeaderComponent } from './header/header.component';                     //! 7) Import the header component
-import { PostListComponent } from './post-list/post-list.component';             //! 8) Import the post-list component
+import { PostListComponent } from './posts/post-list/post-list.component';       //! 8) Import the post-list component
 
 @NgModule({
   declarations: [

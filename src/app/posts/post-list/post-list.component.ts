@@ -1,4 +1,5 @@
-import { Component, Input } from "@angular/core";
+import { Component, Input } from "@angular/core";   //! 1) Import Input
+import { Post } from '../post.model';               //! 2) Import the Post Model
 
 @Component({
     selector: 'app-post-list',
@@ -12,6 +13,6 @@ export class PostListComponent {
     //     { title: 'Third Post', content: "This is the thrid post's content"},
     //     { title: 'Fourth Post', content: "This is the fourth post's content"}
     // ];
-    @Input() posts = [];
-
+    @Input() posts: Post[] = [];                        //+ 1.1) To make it bindable from outsid
+                                                        //+ 2.1) Refactor the posts to use the Post Model
 }
