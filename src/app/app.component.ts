@@ -6,5 +6,9 @@ import { Component } from '@angular/core';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent {
-  title = 'Angular-Social-Media';
+  storedPosts = [];
+
+  onPostAdded(post) {
+    this.storedPosts.push(post);
+  }
 }
