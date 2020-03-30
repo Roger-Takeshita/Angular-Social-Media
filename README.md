@@ -1190,4 +1190,106 @@
   * `next`
   * `error`
   * `complete`
-* 
+
+<h1 id='backend'>Back-end</h1>
+
+[Go Back to Summary](#summary)
+
+* first create the followins structure
+  
+  ```Bash
+    .
+    ├── server.js
+    └── backend
+        └── app.js
+  ```
+
+* in `server.js`
+
+  ```JavaScript
+    //! 1) Require HTTP, it's a default node.js package
+    const http = require('http');
+    //! 2) Import the express app
+    const app = require('./backend/app');
+    //! 3) Debug
+    const debug = require('debug')('node-angular');
+
+    //+ 1.1) Shorthand for port number
+    const port = process.env.PORT || 3001;
+
+    //+ 2.1) Set a configuration to set our express port
+    app.set('port', port);
+
+    //+ 1.2) Create a new server
+    //+      Takes an eventListener, It's a function that will be executed for every incoming request no matter which path
+    const server = http.createServer(app); //+ 2.2) Pass app, to use the app for the incoming request
+
+    //* not necessary
+    const onError = (error) => {
+        if (error.syscall !== 'listen') {
+            throw error;
+        }
+        const bind = typeof port === 'string' ? 'pipe ' + port : 'port ' + port;
+        switch (error.code) {
+            case 'EACCES':
+                console.error(bind + ' requires elevated privileges');
+                process.exit(1);
+                break;
+            case 'EADDRINUSE':
+                console.error(bind + ' is already in use');
+                process.exit(1);
+                break;
+            default:
+                throw error;
+        }
+    };
+
+    //* not necessary
+    const onListening = () => {
+        const addr = server.address();
+        const bind = typeof port === 'string' ? 'pipe ' + port : 'port ' + port;
+        debug('Listening on ' + bind);
+    };
+
+    //* not necessary
+    server.on('error', onError);
+    server.on('listening', onListening);
+
+    //+ 1.3) Listen to the port
+    server.listen(port, () => {
+        console.log(`Express app running on port ${port}`);
+    });
+  ```
+
+* in `backend/app.js`
+
+  ```Bash
+    //! Require Express
+    const express = require('express');
+
+    //+ 1.1) Create an express app to use express features
+    const app = express();
+
+    //+ 1.2) Middlewares
+    app.use('/api/posts', (req, res, next) => {
+        const posts = [
+            {
+                id: '12312412313123',
+                title: 'First server-side post',
+                content: 'This is coming from the server!'
+            },
+            {
+                id: 'fas2312123132',
+                title: 'Second server-side post',
+                content: 'This is coming from the server too!'
+            }
+        ];
+        res.json({
+            message: 'Posts fetched successfully!',
+            posts
+        });
+    });
+
+    //+ 1.3) Export to the server
+    module.exports = app;
+  ```
