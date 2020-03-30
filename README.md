@@ -1191,7 +1191,7 @@
   * `error`
   * `complete`
 
-<h1 id='backend'>Back-end</h1>
+<h1 id='backend'>Node.js - Back-end</h1>
 
 [Go Back to Summary](#summary)
 
@@ -1292,4 +1292,149 @@
 
     //+ 1.3) Export to the server
     module.exports = app;
+  ```
+
+<h2 id='cors'>Cross-Origin Resource Sharing</h2>
+
+[Go Back to Summary](#summary)
+
+* To avoid **CORS** (Cross-Orgin Resouce Sharing) we need to create another middleware before reaching to to our routes API.
+* in `app.js`
+
+  ```JavaScript
+      //! 2) Set a Header so we can access our api no matter what is the origin (to avoid CORS)
+      app.use((req, res, next) => {
+          //+ 2.1) response a Header (header key, header value);
+          //+      '*', no matter the domain the app is sending the request, it's allowed to access the resources
+          res.setHeader('Access-Control-Allow-Origin', '*');
+          //+ 2.2) The types of headers allowed
+          res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-Width, Content-Type, Accept');
+          //+ 2.3) The methods of headers allowed
+          res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS');
+          next();
+      });
+  ```
+
+<h2 id='resctructure1'>Re-structure the Back-end to Use - http.get()</h2>
+
+[Go Back to Summary](#summary)
+
+* in `post-list.component.ts`:
+  * Remove the this.posts variable, since we are not receiving anything from the getPosts() method, we are just triggering the mothod to fetch for posts
+
+  ```TypeScript
+    ngOnInit() {
+        this.postsService.getPosts();                               // Just triggering to fech posts
+        this.postsSub = this.postsService.getPostUpdateListener().subscribe((posts: Post[]) => {
+            this.posts = posts
+        });
+    }
+  ```
+
+<h1 id='fetehingpost'>Angular Fetching Posts</h1>
+
+[Go Back to Summary](#summary)
+
+* First let's add another property to our `post.model.ts`
+* in `post.model.ts`:
+  * Add the `id`, type `string`
+
+  ```TypeScript
+    export interface Post {
+        id: string,
+        title: string;
+        content: string;
+    }
+  ```
+
+<h2 id='unlockhttpangular'>Unlock Angular HTTP Client</h2>
+
+[Go Back to Summary](#summary)
+
+* Angular has a built-in http client. But first we need to unlock in the `app.module.ts`
+  
+* in `app.module.ts`
+  * Import the `{ HttpClientModule }` from `@angular/common/http`
+  * Then we need to add to the `imports` array, to really unlock this feature
+    * Now we can use the http client in our components or services.
+
+  ```TypeScript
+    import { HttpClientModule } from '@angular/common/http';                         //! 10) Import HTTP Client module to make http request to the server
+
+    @NgModule({
+      declarations: [
+        ...    
+      ],
+      imports: [
+        ...
+        HttpClientModule,         //+ 10.1) Unlock the HttpClientModule
+      ],
+      providers: [],
+      bootstrap: [AppComponent]
+    })
+    export class AppModule { }
+  ```
+
+<h2 id='updateangularhttp'>Update Angular Project to Fetch Posts</h2>
+
+[Go Back to Summary](#summary)
+
+* in `posts.service.ts`:
+  * Import `{ HttpClient }` from `@angular/common/http`
+  * Create a constructor to bind a property, type of HttpClient
+  
+
+  * Refactor the `getPost()` method
+    * the HttpClient has a `.get()` method to fetch data
+    * the `.get()` by itself won't send request if we don't listen to it (`.subscribe()`)
+      * And subscribe(), we can pass 3 arguments, 1st is the `new data`, `error` and `compete`
+        * For now, we are just going to use to get new data, lets add a function to be executed whenever we get a response.
+
+  ```TypeScript
+      import { Post } from './post.model';
+      import { Injectable } from '@angular/core';
+      import { Subject } from 'rxjs';
+      import { HttpClient } from '@angular/common/http';          //! 6) Impor Http Client
+
+      @Injectable({providedIn: 'root'})
+
+      export class PostService {
+          private posts: Post[] = [];
+          private postsUpdate = new Subject<Post[]>();
+
+          constructor(private http: HttpClient) {                     //+ 6.1) Inject and automatically bind to a property using private with a type of HttpClient
+
+          }
+
+          getPosts() {
+              this.http.get<{message: string, posts: Post[]}>('http://localhost:3001/api/posts') //+ 6.1) Http GET Request
+                  .subscribe((data)=> {                                       //- 6.1.1) The angular http client uses observables, for that we need to listen to the request using .subscribe()
+                      this.posts = data.posts;                                //-        We dont't need to store the subscription and unsubscribe from it (ngOnDestroy) beacause observables
+                      this.postsUpdate.next([...this.posts]);                 //-        connected to features built into angular like the http cliente, the unsubscription will be automatically
+                                                                              //-        be handle for us by angular
+                  });
+          }
+
+          addPost(title: string, content: string) {
+              const post: Post = { id:null, title: title, content:content};   //- Add the id: null, to avoid errors
+              this.posts.push(post);
+              this.postsUpdate.next([...this.posts]);
+          }
+
+          getPostUpdateListener() {
+              return this.postsUpdate.asObservable();
+          }
+      }
+  ```
+
+* in `post-list.component.ts`
+  * Just remove `this.posts` on the `ngOnInit()` method, because we are using `this.postService.getPosts()` to trigger the fetch request. We are not receiving any data back.
+    
+  ```TypeScript
+      ngOnInit() {
+          this.postsService.getPosts();                               // We not receiving any data back
+          this.postsSub = this.postsService.getPostUpdateListener().subscribe((posts: Post[]) => {
+              this.posts = posts
+          });
+      }
   ```

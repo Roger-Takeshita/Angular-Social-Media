@@ -10,6 +10,7 @@ import { Subscription } from 'rxjs';                        //! 7) Import Subscr
     templateUrl: './post-list.component.html',
     styleUrls: ['./post-list.component.css']
 })
+
 export class PostListComponent implements OnInit, OnDestroy {   //+ 5.1) To use the componentDidMount life cycle 
                                                                 //+ 8.1) To use the componentWillUnmount life cycle
     //+ 4.1) Hard way -  To store a property
@@ -33,7 +34,7 @@ export class PostListComponent implements OnInit, OnDestroy {   //+ 5.1) To use 
                                                                 //+ 2.1) Refactor the posts to use the Post Model
     private postsSub: Subscription;                             //+ 7.1) Create a new instance of subscription and is undefined in the beginning
     ngOnInit() {                                                //+ 5.3) componentDidMount - Then we need to add this special method. Angular will automatically execute this command, when it creates this component
-        this.posts = this.postsService.getPosts();                  //- 5.3.1) We fetch our posts
+        this.postsService.getPosts();                               //- 5.3.1) We fetch our posts
         this.postsSub = this.postsService.getPostUpdateListener().subscribe((posts: Post[]) => {    //! 6) Setting up a listener to the subject     //+ 7.2) then we set postsSub equals to the postService and the subscription that we are defining
             this.posts = posts                                                                          //+ 6.1) 'this.postsService.getPostUpdateListener()' this returns their observable
                                                                                                         //+ 6.2) .subscribe(), takes 3 arguments (callback emit, callback error, callback completed)
