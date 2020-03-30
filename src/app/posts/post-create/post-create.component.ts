@@ -1,8 +1,9 @@
-import { Component, EventEmitter, Output } from '@angular/core';                    //! 1) Import angular component decorator
+import { Component } from '@angular/core';                                          //! 1) Import angular component decorator       //+ 7.1) Remove EventEmitter and Output
                                                                                     //! 3) Import EventEmitter - to create an event binding
                                                                                     //! 4) Import Output decorator - to make angular aware that we have an event that can be listened outside of this component
                                                                                     //!    We have to do this manualy because we rarely want to listen to events from the outside
-import { Post } from '../post.model';                                               //! 5) Import the Post Model
+import { NgForm } from '@angular/forms';                                            //! 6) Import NgForms type
+import { PostService } from '../posts.service';                                     //! 7) Import postServices
 
 
                                                                                         //+ 1.1) Component decorator to attach to a class to mark as component
@@ -17,11 +18,14 @@ import { Post } from '../post.model';                                           
 export class PostCreateComponent {                                                  //! 2) Export our class
     enteredTitle = "";                                                                  //+ 2.1) Create a new variable to hold the title 
     enteredContent = '';                                                                //+ 2.2) Re-name this variable so we don't confuse ourselves
-    @Output() postCreated = new EventEmitter<Post>();                                   //+ 3.1) Create a new event binding
-                                                                                        //+ 5.2) <Post> we are defining the generic type - this will only emit posts, otherwise, we'll get an error
-                                                                                        //+ 4.1) @Output - to make angular aware that we have an event that can be listened outside of this component
-    onAddPost() {
-        const post: Post = { title: this.enteredTitle, content: this.enteredContent };  //+ 5.1) Refactor the post variable to use the Post Model
-        this.postCreated.emit(post);                                                    //+ 3.2) Then we call the postCreated.emit() to emit a new event             
+    constructor(public postService: PostService) {                                      //+ 7.2) Add the 'public' keyword, this will automatically create a new property in this component and store the incoming value in that property
+                                                                                        //+      We need to inject 'Injectable({providedIn: 'root'})' into 'post.services.ts'
+    }
+    
+                                                                                        //+ 7.3) Remove the Output decorator and emiter
+    onAddPost(form: NgForm) {                                                           //+ 6.1) NgForm Type
+        if (form.invalid) return;                                                       //+ 6.1) We can check if the form is invalid
+        this.postService.addPost(form.value.title, form.value.content);                 //+ 7.2) Refactor to push data to our store, we are not using emit anymore
+        form.resetForm();                                                               //+ 7.3) Just to reset the form after submiting
     }
 }

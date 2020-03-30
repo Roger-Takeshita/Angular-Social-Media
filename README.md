@@ -772,3 +772,422 @@
           }
       }
   ```
+
+<h2 id='addingforms'>Adding Forms</h2>
+
+[Go Back to Summary](#summary)
+
+* in `src/app/posts/post-create/post-create.component.html`
+
+* wrap the form fields and button with a `<form>` tag
+* When angular detecs a `<form>` element, we also need to incude the `FormsModule` in `app.module.ts` (which we already did)
+  * It automatically creates a JavaScript object behind the scenes which represents thsi form
+  * Then we can easily register inputs as controls of which it will keep track of
+  * I will then store the values of theses controls
+  * We can easily add validations, submit the form and use the values of the form
+
+* 1 - To do so, we need to remove the **two-way binding** and overwrite with a **directive** without any bindings
+  * 1.1 -`[(ngModel)]="variable"` ---> `ngModel`
+  * 1.2 - the `ngModel` will register the input (<tag>) as a control to this behind the scenes form
+* 2 - We need to give a name attribube `name="custon-name"`
+* 3 - Change `(click)="onAddPost()` to `type="submit"`
+* 4 - Add an eventListener to the from `(submit)="onAddPost()`
+  * 4.1 - **Angular will automatically prevent the default**
+* 5 - Add a reference to the form, so we can access the value outside
+  * 5.1 - `#reference-name="ngForm"` ---> `#postForm="ngForm"`
+  * 5.2 - Then we need to pass this object reference to `(submit)="onAddPost(postForm)`
+* 6 - Adding an errro message, add `<mat-error>` below the form
+  * 6.1 - To do that, we need to create **local references** to each element that we want to create a custom erro msg
+  * 6.2 - `#title="ngModel"` and `#content="ngModel"`
+  
+  ```HTML
+      <mat-card>
+      <form action="">
+          <mat-form-field (submit)="onAddPost(postForm)" #postForm="ngForm">
+              <input
+                matInput
+                type="text"
+                name="title"
+                #title="ngModel"
+                ngModel
+                required>
+              <mat-error *ngIf="title.invalid">Invalid title</mat-error>
+          </mat-form-field>
+          <mat-form-field>
+              <textarea
+                matInput
+                rows="6"
+                name="content"
+                #content="ngModel"
+                ngModel
+                required></textareamatInput>
+              <mat-error *ngIf="content.invalid">Invalid content</mat-error>
+          </mat-form-field>
+          <button mat-raised-button color="accent" type="submit">Save Post</button>
+      </form>
+      </mat-card>
+  ```
+
+* in `src/app/posts/post-create/post-create.component.ts`
+
+* Now that we are receiving the `postForm` object from our HTML, we need to refactor our class
+* 1 - Import the **NgForm** from `@angular/forms`;
+* 2 - Refactor the `onAddPost()` function to receive `form: type NgForm`
+  * 2.1 - We can check if the form is `invalid`
+  * 2.2 - Adjust the values so we can get from the form object that we are using now
+
+  ```TypeScript
+      import { Component, EventEmitter, Output } from '@angular/core';                    //! 1) Import angular component decorator
+                                                                                          //! 3) Import EventEmitter - to create an event binding
+                                                                                          //! 4) Import Output decorator - to make angular aware that we have an event that can be listened outside of this component
+                                                                                          //!    We have to do this manualy because we rarely want to listen to events from the outside
+      import { Post } from '../post.model';                                               //! 5) Import the Post Model
+      import { NgForm } from '@angular/forms';                                            //! 6) Import NgForms type
+
+
+                                                                                              //+ 1.1) Component decorator to attach to a class to mark as component
+                                                                                              //+ 1.2) Then angular scans for certain features and uses as a component
+      @Component({                                                                            //+ 1.3) Component decorator, the component decorator takes some config in the form of java script object which we pass to it
+                                                                                              //+      A typical component has a Selector and a Template
+          selector: 'app-post-create',                                                            //- 1.3.1) Selector which allows us to use this component
+          templateUrl: './post-create.component.html',                                            //- 1.3.2) Template
+          styleUrls: ['./post-create.component.css']                                              //- 1.3.3) Style css
+      })
+
+      export class PostCreateComponent {                                                  //! 2) Export our class
+          enteredTitle = "";                                                                  //+ 2.1) Create a new variable to hold the title 
+          enteredContent = '';                                                                //+ 2.2) Re-name this variable so we don't confuse ourselves
+          @Output() postCreated = new EventEmitter<Post>();                                   //+ 3.1) Create a new event binding
+                                                                                              //+ 5.2) <Post> we are defining the generic type - this will only emit posts, otherwise, we'll get an error
+                                                                                              //+ 4.1) @Output - to make angular aware that we have an event that can be listened outside of this component
+          onAddPost(form: NgForm) {                                                           //+ 6.1) NgForm Type
+              if (form.invalid) return;                                                       //+ 6.1) We can check if the form is invalid
+              const post: Post = { title: form.value.title, content: form.value.content };    //+ 5.1) Refactor the post variable to use the Post Model -> 6.2) Refactor the variables to get form.values.field
+              this.postCreated.emit(post);                                                    //+ 3.2) Then we call the postCreated.emit() to emit a new event             
+          }
+      }
+  ```
+
+<h2 id='service'>Service - Easy Way to Pass Information</h2>
+
+[Go Back to Summary](#summary)
+
+* A **service** is a **class** which you add to our angular application, this allows us to `inject` into the component, which is able to centralize some tasks and provide easy acess to data from within different components without property and event binding.
+  * A **service** is just a **TypeScript class**
+
+* create the following file
+
+  ```Bash
+    src/app/posts/posts.service.ts
+  ```
+
+  ```Bash
+    .
+    └── src
+        └── app
+            └── posts
+                └── posts.service.ts
+  ```
+
+* in `posts.service.ts`
+
+  ```TypeScript
+      import { Post } from './post.model';                        //! 1) Import Post model (structure)
+
+      export class PostService {
+          private posts: Post[] = [];                                 //+ 1.1) Create a private variable with the Post structure
+
+          getPosts() {                                                //+ 1.2) Create a getPost method
+              return [...this.posts];
+          }
+
+          addPost(title: string, content: string) {                   //+ 1.3) Create an addPost method
+              const post: Post = {title: title, content:content};
+              this.posts.push(post);
+          }
+      }
+  ```
+
+<h3 id='dependencyinjection'>Dependency Injection</h3>
+
+[Go Back to Summary](#summary)
+
+* This means that we simply go to the component that we want to use it
+* And add a `constructor()`
+  * In the constructor we expect to receive some arguments, but since angular is the one creating new instances of the component. **Angular has to give you these arguments** and angular has a complex dependency injection system which is able to finde out what you want and indeed give you that.
+* We need to import the `post.service` that we created
+
+* in `post.service.ts`
+
+  ```TypeScript
+      import { Post } from './post.model';
+      import { Injectable } from '@angular/core';                 //! 2) Import Injectable
+
+      @Injectable({providedIn: 'root'})                               //+ 2.1) This makes angular aware of our service provider
+                                                                      //+      Instead of declaring into 'app.module.ts'>'providers'
+                                                                      //+      Inside the parenteses, we don't have to pass an argument, but we can pass a JavaScript object to configure this
+                                                                      //+ 2.2) In this case we are setting to the content of 'root'
+                                                                      //+      This will create only one instance of this service for the entire app. So wherever you enject this, we're going to use the same instance
+      export class PostService {
+          private posts: Post[] = [];
+
+          getPosts() {
+              return [...this.posts];
+          }
+
+          addPost(title: string, content: string) {
+              const post: Post = {title: title, content:content};
+              this.posts.push(post);
+          }
+      }
+  ```
+
+<h4 id='gettingposts'>Post-List Constructor</h4>
+
+* in `post-list.component.ts`
+  * We need to import the PostService
+  * Then we create a constructor to store the incoming value (just like useState)
+  
+  ```TypeScript
+      import { Component, Input } from "@angular/core";
+      import { Post } from '../post.model';
+      import { PostService } from '../posts.service';             //! 4) Import PostService
+
+      @Component({
+          selector: 'app-post-list',
+          templateUrl: './post-list.component.html',
+          styleUrls: ['./post-list.component.css']
+      })
+      export class PostListComponent {
+          //+ 4.1) Hard way -  To store a property
+              // postService: PostService;                            //- 4.1.1) Store the posts in property of my class, create an instance of PostService
+                                                                      //-        Also we have to import the PostService into 'app.module.ts' and add to providers array. Otherwise, Angular wont know about this new provider.
+              // constructor(postService: PostService) {              //- 4.1.2) pass a property postService: type PostService (instance of PostService)
+              //     this.postService = postService;                      //? 4.1.2.1) then set the postService property of the class to postSerivice (that we are receiving)
+              // }
+
+          //+ 4.2) Easy way - To store a property
+              constructor(public postsService: PostService) {         //- 4.2.1) Add the 'public' keyword, this will automatically create a new property in this component and store the incoming value in that property
+                                                                      //-        We need to inject 'Injectable({providedIn: 'root'})' into 'post.services.ts' this way we dont need to add to 'app.module.ts' just in the like item 4.1.1
+              }
+          @Input() posts: Post[] = [];
+      }
+  ```
+
+<h1 id='lifecycle'>Angular's Life Cycle</h1>
+
+<h2 id='oninit'>OnInit - componentDidMount</h2>
+
+[Go Back to Summary](#summary)
+
+* `OnInit` is imported from `@angular/core`
+* To use:
+  1. we need to **implements** on our class
+  2. and we are required to add a special method to our class `ngOnInit(){}` 
+    * Angular will automatically execute this command, when it creates this component (similar to componentDidMount)
+
+<h3 id='postlistgetpost'>Post-List Connecting to GET Post</h3>
+
+[Go Back to Summary](#summary)
+
+* in `post-list.component.ts`
+
+  ```TypeScript
+    import { Component, OnInit } from "@angular/core";      //! 5) Remove Input and Import OnInit life cycle
+    import { Post } from '../post.model';
+    import { PostService } from '../posts.service';
+
+    @Component({
+        selector: 'app-post-list',
+        templateUrl: './post-list.component.html',
+        styleUrls: ['./post-list.component.css']
+    })
+
+    export class PostListComponent implements OnInit {          //+ 5.1) To use the life cycle, firs we need to implements
+        constructor(public postsService: PostService) {
+
+        }
+        posts: Post[] = [];                                             //+ 5.2) Remove @Input decorator we dont need anymore           
+        ngOnInit() {                                            //+ 5.3) Angular will automatically execute this command, when it creates this component
+            this.posts = this.postsService.getPosts();              //- 5.3.1) We fetch our posts
+        }
+    }
+  ```
+
+* in `post-list.component.html`
+  * Add `EDIT` and `DELETE` button below the content. We'll add the functions later
+
+  ```HTML
+      <p>{{ post.content }}</p>
+      <mat-action-row>
+          <button mat-button color="primary">EDIT</button>
+          <button mat-button color="warn">DELETE</button>
+      </mat-action-row>
+  ```
+
+<h3 id='postcreategetpost'>Post-Create Connecting to GET Post</h3>
+
+[Go Back to Summary](#summary)
+
+* Let's refactor to use the `easy way` (constructor) to store local data (useState), and get the posts from our store through `postService`.
+* Since we don't need anymore the `post.model` we can delete it. We are going to use the `postService` to create our new post.
+* in `post-create.component.ts`
+
+  ```TypeScript
+      import { Component } from '@angular/core';                                          //! 1) Import angular component decorator       //+ 7.1) Remove EventEmitter and Output
+                                                                                              //+ 7.2) Remove the post.model, we dont need the post structure anymore 
+      import { NgForm } from '@angular/forms';
+      import { PostService } from '../posts.service';                                     //! 7) Import postServices
+
+      @Component({
+          selector: 'app-post-create',
+          templateUrl: './post-create.component.html',
+          styleUrls: ['./post-create.component.css']
+      })
+
+      export class PostCreateComponent {
+          enteredTitle = "";
+          enteredContent = '';
+          constructor(public postService: PostService) {                                      //+ 7.3) Add the 'public' keyword, this will automatically create a new property in this component and store the incoming value in that property
+                                                                                              //+      We need to inject 'Injectable({providedIn: 'root'})' into 'post.services.ts'
+          }
+          
+                                                                                              //+ 7.4) Remove the Output decorator and emiter
+          onAddPost(form: NgForm) {
+              if (form.invalid) return;
+              this.postService.addPost(form.value.title, form.value.content);                 //+ 7.5) Refactor to push data to our store, we are not using emit anymore
+              form.resetForm();                                                               //+ 7.6) Just to reset the form after submiting
+          }
+      }
+  ```
+
+<h3 id='updateappcomponent'>Update App Component</h3>
+
+[Go Back to Summary](#summary)
+
+* Update app component to reflect all the changes that we did
+  
+* in `app.component.html`
+  * Remove all the bindings that we did, we are using the store to do that
+  
+  ```HTML
+      <app-header></app-header>
+      <main>
+          <app-post-create"></app-post-create">
+          <app-post-list></app-post-list>
+      </main>
+  ```
+
+* in `app.component.ts`
+
+  ```TypeScript
+    import { Component } from '@angular/core';
+
+    @Component({
+      selector: 'app-root',
+      templateUrl: './app.component.html',
+      styleUrls: ['./app.component.css']
+    })
+    export class AppComponent {
+      
+    }
+  ```
+
+<h1 id='rxjs'>rxjs</h1>
+
+[Go Back to Summary](#summary)
+
+* Rxjs an **observable**, it essentially about object that help us pass data around
+* Rxjs is an dependency of angular
+
+* in `posts.service.ts`:
+
+  * Import a `Subject` form `rxjs`;
+  * A `Subject` is more or less an event emiter
+  * Create a new instance of Subject and pass a list of posts as a payload to it.
+  * in `onAddPost()` add `this.postsUpdate.next([...this.posts])`, `.next()` will push/emit a new value to our store
+  * create a new function `getPostUpdateListener()` and return an **observable object**
+    * `.observable()` returns an object that we can listen to it but we can emit
+
+```TypeScript
+    import { Post } from './post.model';
+    import { Injectable } from '@angular/core';
+    import { Subject } from 'rxjs';                             //! 3) Import Subject - it's more or less an event emiter
+
+    @Injectable({providedIn: 'root'})
+    export class PostService {
+        private posts: Post[] = [];
+        private postsUpdate = new Subject<Post[]>();                //+ 3.1) Create a new instace of Subject, and pass a list of post as a payload
+
+        getPosts() {
+            return [...this.posts];
+        }
+
+        addPost(title: string, content: string) {
+            const post: Post = {title: title, content:content};
+            this.posts.push(post);                                  //+ 3.1) Update the post first
+            this.postsUpdate.next([...this.posts]);                 //+ 3.2) then pushes/emit a new value to our store
+        }
+
+        getPostUpdateListener() {                                   //+ 3.3) New method to getUpdateListener
+            return this.postsUpdate.asObservable();                     //- 3.3.1) .asObservable(), this returns an object where we can listen but we cant emit
+                                                                        //- 3.3.2) we still can emit inside this file but we cant emit from where we are receiving this reference
+        }
+    }
+```
+
+* in `post-list.component.ts`
+  * Add `OnInit` - componentDidMount
+  * Add `OnDestroy` - componentWillUnmount
+
+  ```JavaScript
+      import { Component, OnInit, OnDestroy} from "@angular/core";//! 5) Remove Input and Import OnInit life cycle - componentDidMount
+                                                                  //! 8) Add another life cycle OnDestroy - componentWillUnmount
+      import { Post } from '../post.model';
+      import { PostService } from '../posts.service';
+      import { Subscription } from 'rxjs';                        //! 7) Import Subscription
+
+      @Component({
+          selector: 'app-post-list',
+          templateUrl: './post-list.component.html',
+          styleUrls: ['./post-list.component.css']
+      })
+      export class PostListComponent implements OnInit, OnDestroy {   //+ 5.1) To use the componentDidMount life cycle
+                                                                      //+ 8.1) To use the componentWillUnmount life cycle
+          constructor(public postsService: PostService) {
+          }
+          posts: Post[] = [];                                         //+ 5.2) Remove @Input decorator we dont need anymore
+          private postsSub: Subscription;                             //+ 7.1) Create a new instance of subscription and is undefined in the beginning
+          ngOnInit() {                                                //+ 5.3) componentDidMount - Then we need to add this special method. Angular will automatically execute this command, when it creates this component
+              this.posts = this.postsService.getPosts();                  //- 5.3.1) We fetch our posts
+              this.postsSub = this.postsService.getPostUpdateListener().subscribe((posts: Post[]) => {    //! 6) Setting up a listener to the subject     //+ 7.2) then we set postsSub equals to the postService and the subscription that we are defining
+                  this.posts = posts                                                                          //+ 6.1) 'this.postsService.getPostUpdateListener()' this returns their observable
+                                                                                                              //+ 6.2) .subscribe(), takes 3 arguments (callback emit, callback error, callback completed)
+                                                                                                                  //- callback emit, it's executed when new data is available
+                                                                                                                  //- callback error, it's executed when we got an error (this will never be the case here)
+                                                                                                                  //- callback completed, it's executed whenever the obeservable is completed, whenever ther are no more values to be expected (this will never be the case here, beacuse this is an infinetly living subject)
+                                                                                                                      //? In this case we are using just the emit part, we define a variable "posts" to the Post structure
+              });
+          }
+          ngOnDestroy() {                                             //+ 8.1) componentWillUnmount - This is called whenver this component is about to get unmounted
+              this.postsSub.unsubscribe();                                //- 8.1.1) So before unmounting this component, It will unsubscribe
+          }
+      }
+  ```
+
+<h1 id='observable'>Observables, Observers and Subscriptions</h1>
+
+<h2 id='whatobservable'>What is an Observable?</h2>
+
+[Go Back to Summary](#summary)
+
+* It's all about emitting and data and listening to that data in different places of our application.
+* So we tipically think in `observables` and `observers`
+  * the `observer` is essentially th thing subscribing to an observable
+
+
+* There are three methods that are called on the observers side
+  * `next`
+  * `error`
+  * `complete`
+* 
