@@ -1109,32 +1109,32 @@
   * create a new function `getPostUpdateListener()` and return an **observable object**
     * `.observable()` returns an object that we can listen to it but we can emit
 
-```TypeScript
-    import { Post } from './post.model';
-    import { Injectable } from '@angular/core';
-    import { Subject } from 'rxjs';                             //! 3) Import Subject - it's more or less an event emiter
+  ```TypeScript
+      import { Post } from './post.model';
+      import { Injectable } from '@angular/core';
+      import { Subject } from 'rxjs';                             //! 3) Import Subject - it's more or less an event emiter
 
-    @Injectable({providedIn: 'root'})
-    export class PostService {
-        private posts: Post[] = [];
-        private postsUpdate = new Subject<Post[]>();                //+ 3.1) Create a new instace of Subject, and pass a list of post as a payload
+      @Injectable({providedIn: 'root'})
+      export class PostService {
+          private posts: Post[] = [];
+          private postsUpdate = new Subject<Post[]>();                //+ 3.1) Create a new instace of Subject, and pass a list of post as a payload
 
-        getPosts() {
-            return [...this.posts];
-        }
+          getPosts() {
+              return [...this.posts];
+          }
 
-        addPost(title: string, content: string) {
-            const post: Post = {title: title, content:content};
-            this.posts.push(post);                                  //+ 3.1) Update the post first
-            this.postsUpdate.next([...this.posts]);                 //+ 3.2) then pushes/emit a new value to our store
-        }
+          addPost(title: string, content: string) {
+              const post: Post = {title: title, content:content};
+              this.posts.push(post);                                  //+ 3.1) Update the post first
+              this.postsUpdate.next([...this.posts]);                 //+ 3.2) then pushes/emit a new value to our store
+          }
 
-        getPostUpdateListener() {                                   //+ 3.3) New method to getUpdateListener
-            return this.postsUpdate.asObservable();                     //- 3.3.1) .asObservable(), this returns an object where we can listen but we cant emit
-                                                                        //- 3.3.2) we still can emit inside this file but we cant emit from where we are receiving this reference
-        }
-    }
-```
+          getPostUpdateListener() {                                   //+ 3.3) New method to getUpdateListener
+              return this.postsUpdate.asObservable();                     //- 3.3.1) .asObservable(), this returns an object where we can listen but we cant emit
+                                                                          //- 3.3.2) we still can emit inside this file but we cant emit from where we are receiving this reference
+          }
+      }
+  ```
 
 * in `post-list.component.ts`
   * Add `OnInit` - componentDidMount
@@ -1191,7 +1191,9 @@
   * `error`
   * `complete`
 
-<h1 id='backend'>Node.js - Back-end</h1>
+<h1 id='getposts'>Get Posts</h1>
+
+<h2 id='backendget'>Node.js - Get Posts Request</h2>
 
 [Go Back to Summary](#summary)
 
@@ -1294,7 +1296,7 @@
     module.exports = app;
   ```
 
-<h2 id='cors'>Cross-Origin Resource Sharing</h2>
+<h3 id='cors'>Cross-Origin Resource Sharing</h3>
 
 [Go Back to Summary](#summary)
 
@@ -1315,7 +1317,7 @@
       });
   ```
 
-<h2 id='resctructure1'>Re-structure the Back-end to Use - http.get()</h2>
+<h3 id='resctructure1'>http.get() - Re-structure the Back-end</h3>
 
 [Go Back to Summary](#summary)
 
@@ -1331,7 +1333,7 @@
     }
   ```
 
-<h1 id='fetehingpost'>Angular Fetching Posts</h1>
+<h2 id='fetehingpost'>Angular - Fetching Posts</h2>
 
 [Go Back to Summary](#summary)
 
@@ -1347,7 +1349,7 @@
     }
   ```
 
-<h2 id='unlockhttpangular'>Unlock Angular HTTP Client</h2>
+<h3 id='unlockhttpangular'>Unlock Angular HTTP Client</h3>
 
 [Go Back to Summary](#summary)
 
@@ -1375,7 +1377,7 @@
     export class AppModule { }
   ```
 
-<h2 id='updateangularhttp'>Update Angular Project to Fetch Posts</h2>
+<h3 id='updateangularhttp'>Update Angular Project to Fetch Posts</h3>
 
 [Go Back to Summary](#summary)
 
@@ -1436,5 +1438,305 @@
           this.postsSub = this.postsService.getPostUpdateListener().subscribe((posts: Post[]) => {
               this.posts = posts
           });
+      }
+  ```
+
+<h1 id='postpost'>Post Post</h1>
+
+<h2 id='backendpost'>Node.js - Post Post Request</h2>
+
+<h3 id='postrequest'>Post Request - body-parser</h3>
+
+[Go Back to Summary](#summary)
+
+* Post requests have a request body attached to them and we need to extract that data.
+* For that we can install another node/express package that adds a middleware. Express will automatically extract the incoming request data and add it as a new field to that request object.
+* Install `npm i body-parser`
+
+* in `app.js`
+  * Require the `body-parser` package
+
+```TypeScript
+    const express = require('express');
+    //! 3) Rquire body-parse to extrat the incoming body from the request
+    const bodyParser = require('body-parser');
+
+    const app = express();
+
+    //+ 3.1) This will return a valid express middleware for parsing json data
+    app.use(bodyParser.json());
+    //+ 3.1) This will parse the url encode data
+    //-    3.1) Extended: false to onlly support default features
+    app.use(bodyParser.urlencoded({ extended: false }));
+
+    app.use((req, res, next) => {
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-Width, Content-Type, Accept');
+        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS');
+        next();
+    });
+
+    //+ 3.2) Post Request - Middleware
+    app.post('/api/posts', (req, res, next) => {
+        console.log(req.body);
+        res.json(req.body);
+    });
+
+    app.get('/api/posts', (req, res, next) => {
+        const posts = [
+            {
+                id: '12312412313123',
+                title: 'First server-side post',
+                content: 'This is coming from the server!'
+            },
+            {
+                id: 'fas2312123132',
+                title: 'Second server-side post',
+                content: 'This is coming from the server too!'
+            }
+        ];
+        res.json({
+            message: 'Posts fetched successfully!',
+            posts
+        });
+    });
+    module.exports = app;
+```
+
+<h2 id='angularpost'>Angular - Send a Post Request</h2>
+
+[Go Back to Summary](#summary)
+
+* in `posts.service.ts`
+  * Let's refactor our `addPost()` method to send a post request to the server
+  * we can refactor the structure of the post that we are going to receive from the server (add postID)
+    * So before updating the post store, we receive the id from the server and then we change the `id:null` to `id: ObjectId`
+
+  ```TypeScript
+      addPost(title: string, content: string) {
+          const post: Post = { id: null, title: title, content:content};
+          this.http.post<{message: string, postId: string}>('http://localhost:3001/api/posts', post)
+          .subscribe((data) => {
+                  post.id = data.postId;
+                  this.posts.push(post);
+                  this.postsUpdate.next([...this.posts]);
+              })
+      }
+  ```
+
+<h1 id='mongodb'>MongoDB</h1>
+
+[Go Back to Summary](#summary)
+
+<h2 id='connectwithmongodb'>Node.js - Connect With MongoDB</h2>
+
+[Go Back to Summary](#summary)
+
+* Install `mongoose` package to use Schemas (MongoDB doesn't use Schema)
+* This will help use to interact with mongoDB database to CRUD
+  * `npm i mongoose`
+* And install dotenv, to mask our database connection
+  * `npm i dotenv`
+  * create a `.env` file in the main root of our app
+    * Add `DATABASE_URL=mongodb+srv://...`
+  
+<h3 id='schema'>Create a Schema</h3>
+
+[Go Back to Summary](#summary)
+
+* Create a `models` folder to centralize all the Schemas
+  
+  ```Bash
+    .
+    └── backend
+        └── models
+            └── post.js
+  ```
+
+* in `post.js`
+
+```JavaScript
+  const mongoose = require('mongoose');
+  const Schema = mongoose.Schema;
+
+  const PostSchema = new Schema(
+      {
+          title: {
+              type: String,
+              required: true
+          },
+          content: {
+              type: String,
+              required: true
+          }
+      },
+      {
+          timestamps: true
+      }
+  );
+
+  module.exports = mongoose.model('Post', PostSchema);
+```
+
+* in `app.js`
+  * Require the `Post` Schema
+  * Refactor our `addPost()` and `getPosts()` methods to fetch and create a post from our database
+
+  ```JavaScript
+      const express = require('express');
+      const bodyParser = require('body-parser');
+      //! 4) Require mongoose
+      const mongoose = require('mongoose');
+      //! 5) Require the Post Schema
+      const Post = require('./models/post');
+      //! 6) Require dotenv package
+      require('dotenv').config();
+
+      const app = express();
+
+      //+ 4.1) Connect our mongoose to mongoDB
+      mongoose
+          .connect(process.env.DATABASE_URL, {
+              useNewUrlParser: true,
+              useCreateIndex: true,
+              useUnifiedTopology: true
+          })
+          .then(() => {
+              console.log('Connected to database');
+          })
+          .catch(() => {
+              console.log('Connection failed!');
+          });
+
+      app.use(bodyParser.json());
+      app.use(bodyParser.urlencoded({ extended: false }));
+
+      app.use((req, res, next) => {
+          res.setHeader('Access-Control-Allow-Origin', '*');
+          res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-Width, Content-Type, Accept');
+          res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS');
+          next();
+      });
+
+      app.post('/api/posts', (req, res, next) => {
+          const post = new Post({
+              title: req.body.title,
+              content: req.body.content
+          });
+          post.save().then((data) => {
+              res.json({
+                  postId: data._id,
+                  message: 'Post added successfully'
+              });
+          });
+      });
+
+      app.get('/api/posts', async (req, res, next) => {
+          const posts = await Post.find().select('-createdAt -updatedAt -__v');
+          res.json({
+              message: 'Posts fetched successfully!',
+              posts
+          });
+      });
+
+      module.exports = app;
+  ```
+
+<h3 id='angulargettingdata'>Angular - GET/POST Data MongoDB</h3>
+
+[Go Back to Summary](#summary)
+
+* We can chain another method pipe() - we can manipulate the data before the subscription. pipe accepts multiple operators
+  * This way we can convert `_id` that we are receiving from the server before subscribing
+
+  ```TypeScript
+      import { map } from 'rxjs/operators';                       //! 7) Import the map operator so we can use with pipe()
+    
+    ...
+
+      getPosts() {
+          this.http.get<{message: string, posts: any}>('http://localhost:3001/api/posts')
+          .pipe(                                                  //+ 7.1) We can chain another method pipe() - we can manipulate the data before the subscription. pipe accepts multiple operators
+              map((data) => {                                         //- 7.1.1) map operator from rxjs gets the data
+                  return data.posts.map((post) => {                       //? 7.1.1.1) create a map over an array of data
+                      return {                                                //> 7.1.1.1.1) Returns a new object converting the _id to id
+                          title: post.title,
+                          content: post.content,
+                          id: post._id
+                      }
+                  })
+              })
+          )    
+          .subscribe((transformedData)=> {                        // now we are not getting data.post anymore, just the transformed data
+                  this.posts = transformedData;
+                  this.postsUpdate.next([...this.posts]);
+              });
+      }
+      
+      ...
+  ```
+
+<h1 id='deletepost'>Delete Post</h1>
+
+
+<h2 id='nodedelete'>Node.js - Delete Request</h2>
+
+[Go Back to Summary](#summary)
+
+* in `app.js`
+  * Create another route to delete a specific `id`
+
+  ```JavaScript
+      //+ 3.3) Delete Request - Middleware
+      app.delete('/api/posts/:id', async (req, res, next) => {
+          await Post.findOneAndDelete({ _id: req.params.id });
+          res.json({ message: 'Post deleted!' });
+      });
+  ```
+
+<h2 id='angulardelete'>Angular - Delete Request</h2>
+
+[Go Back to Summary](#summary)
+
+* We need to wire up the delete button
+* in `post-list.component.html`
+  * We need to create an event listener to listen to a click an passa a `onDelete(post.id)` that we are going to create next
+
+  ```HTML
+      <mat-accordion multi="true" *ngIf="posts.length > 0">
+          <mat-expansion-panel *ngFor="let post of posts">
+              <mat-expansion-panel-header>
+                  {{ post.title }}
+              </mat-expansion-panel-header>
+              <p>{{ post.content }}</p>
+              <mat-action-row>
+                  <button mat-button color="primary">EDIT</button>
+                  <button mat-button color="warn" (click)="onDelete(post.id)">DELETE</button>
+              </mat-action-row>
+          </mat-expansion-panel>
+      </mat-accordion>
+      <p class="info-text mat-body-1" *ngIf="posts.length === 0">No Posts Added Yet!</p>
+  ```
+
+* in `post-list.component.ts`
+  * Let's create the `onDelete()` method so we can use on our html
+
+  ```TypeScript
+      onDelete(postId: string) {                              //! 9) Delete post method
+          this.postsService.deletePost(postId);                   //+ 9.1) Call our postService tos send the postId
+      }
+  ```
+
+* in `post.service.ts`
+  * Let's create the request to send to our backend
+
+  ```TypeScript
+      deletePost(postId: string) {
+          this.http.delete(`http://localhost:3001/api/posts/${postId}`)
+          .subscribe(() => {
+              const updatePosts = this.posts.filter((post) => post.id !== postId);
+              this.posts = updatePosts;
+              this.postsUpdate.next([...this.posts])
+          })
       }
   ```

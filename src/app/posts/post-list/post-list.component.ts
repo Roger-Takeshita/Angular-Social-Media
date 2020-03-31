@@ -32,6 +32,11 @@ export class PostListComponent implements OnInit, OnDestroy {   //+ 5.1) To use 
     // ];
     posts: Post[] = [];                                         //+ 1.1) To make it bindable from outside   5.2) Remove @Input decorator we dont need anymore
                                                                 //+ 2.1) Refactor the posts to use the Post Model
+
+    onDelete(postId: string) {                              //! 9) Delete post method
+        this.postsService.deletePost(postId);                   //+ 9.1) Call our postService tos send the postId
+    }
+
     private postsSub: Subscription;                             //+ 7.1) Create a new instance of subscription and is undefined in the beginning
     ngOnInit() {                                                //+ 5.3) componentDidMount - Then we need to add this special method. Angular will automatically execute this command, when it creates this component
         this.postsService.getPosts();                               //- 5.3.1) We fetch our posts
