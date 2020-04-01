@@ -28,8 +28,8 @@ mongoose
 
 //+ 3.1) This will return a valid express middleware for parsing json data
 app.use(bodyParser.json());
-//+ 3.1) This will parse the url encode data
-//-    3.1) Extended: false to onlly support default features
+//+ 3.2) This will parse the url encode data
+//-    3.2) Extended: false to onlly support default features
 app.use(bodyParser.urlencoded({ extended: false }));
 
 //! 2) Set a Header so we can access our api no matter what is the origin (to avoid CORS)
@@ -38,11 +38,11 @@ app.use((req, res, next) => {
     //+      '*', no matter the domain the app is sending the request, it's allowed to access the resources
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-Width, Content-Type, Accept');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
     next();
 });
 
-//+ 3.2) Post Request - Middleware
+//+ 2.1) Post Request - Middleware
 app.post('/api/posts', (req, res, next) => {
     const post = new Post({
         title: req.body.title,
@@ -56,7 +56,7 @@ app.post('/api/posts', (req, res, next) => {
     });
 });
 
-//+ 1.2) Get Request - Middlewares
+//+ 2.2) Get Request - Middlewares
 app.get('/api/posts', async (req, res, next) => {
     const posts = await Post.find().select('-createdAt -updatedAt -__v');
     res.json({
@@ -65,11 +65,33 @@ app.get('/api/posts', async (req, res, next) => {
     });
 });
 
-//+ 3.3) Delete Request - Middleware
+//+ 2.3) Delete Request - Middleware
 app.delete('/api/posts/:id', async (req, res, next) => {
     await Post.findOneAndDelete({ _id: req.params.id });
     res.json({ message: 'Post deleted!' });
 });
 
-//+ 1.3) Export to the server
+//+ 2.4) Update Request - Middleware
+app.put('/api/posts/:id', (req, res, next) => {
+    const post = new Post({
+        _id: req.body.id,
+        title: req.body.title,
+        content: req.body.content
+    });
+    Post.updateOne({ _id: req.params.id }, post).then((result) => {
+        res.json({ message: 'Update successful!' });
+    });
+});
+
+//+ 2.5) Get Request Unique Post - Middleware
+app.get('/api/posts/:id', async (req, res, next) => {
+    const post = await Post.findById(req.params.id);
+    if (post) {
+        res.json(post);
+    } else {
+        res.status(404).json({ message: 'Post not found' });
+    }
+});
+
+//+ 1.2) Export to the server
 module.exports = app;

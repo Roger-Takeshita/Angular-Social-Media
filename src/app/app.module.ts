@@ -13,6 +13,7 @@ import { AppComponent } from './app.component';
 import { PostCreateComponent } from './posts/post-create/post-create.component'; //! 1) We need to import the component (the class that we exported)
 import { HeaderComponent } from './header/header.component';                     //! 7) Import the header component
 import { PostListComponent } from './posts/post-list/post-list.component';       //! 8) Import the post-list component
+import { AppRoutingModule } from './app-routing.moudle';                         //! 11) Import the routing module
 
 @NgModule({
   declarations: [
@@ -23,6 +24,7 @@ import { PostListComponent } from './posts/post-list/post-list.component';      
   ],
   imports: [
     BrowserModule,
+    AppRoutingModule,         //+ 11.1) Unlock the AppRoutingModule
     FormsModule,
     BrowserAnimationsModule,  //+ 2.1) Unlock the FormsModule, now we are unlocking some form features, and ngModel is one of them
     MatInputModule,           //+ 3.1) Unlock the MatInputModule

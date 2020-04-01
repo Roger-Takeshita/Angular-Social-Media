@@ -1,18 +1,64 @@
 <h1 id='summary'>Summary</h1>
 
-* [       ](#xxxxxxxxxxx)
-* [       ](#xxxxxxxxxxx)
-* [       ](#xxxxxxxxxxx)
-* [       ](#xxxxxxxxxxx)
-* [       ](#xxxxxxxxxxx)
-* [       ](#xxxxxxxxxxx)
-* [       ](#xxxxxxxxxxx)
-* [       ](#xxxxxxxxxxx)
+* [MEAN - Angular Social Media](#mean)
+  * [Installation](#installation)
+  * [Components](#components)
+    * [How to Create a Component](#createcomponent)
+    * [How to Declare a Component](#declarecomponent)
+    * [How to Use a Component](#usecomponent)
+  * [Function/Method](#createmethod)
+  * [Create a Post Form](#createpostform)
+    * [Property Binding](#propertybinding)
+    * [Two-way Binding](#twowaybinding)
+    * [Core Features of Angular](#corefeatures)
+  * [Angular Material](#angularmaterial)
+    * [Style CSS](#style)
+  * [Toolbar Component](#toolbar)
+  * [Output Data From Component](#outputdata)
+  * [Input Data To Component](#inputdata)
+    * [Post List Component](#postlistcomponent)
+    * [Making Bindable From Outsite](#makingbindable)
+  * [Angular's Post Model](#angularpostmodel)
+  * [Adding Forms](#addingforms)
+  * [Service - Easy Way to Pass Information](#service)
+    * [Dependency Injection](#dependencyinjection)
+    * [Post-List Constructor](#gettingposts)
+* [Angular's Life Cycle](#lifecycle)
+  * [OnInit - componentDidMount](#oninit)
+    * [Post-List Connecting to GET Post](#postlistgetpost)
+    * [Post-Create Connecting to GET Post](#postcreategetpost)
+    * [Update App Component](#updateappcomponent)
+* [rxjs](#rxjs)
+* [Observables, Observers and Subscriptions](#observable)
+  * [What is an Observable?](#xxxxxxxxxxx)
+* [Get Posts](#getposts)
+  * [Node.js - Get Posts Request](#backendget)
+    * [Cross-Origin Resource Sharing](#cors)
+    * [http.get() - Re-structure the Back-end](#resctructure1)
+  * [Angular - Fetching Posts](#fetehingpost)
+    * [Unlock Angular HTTP Client](#unlockhttpangular)
+    * [Update Angular Project to Fetch Posts](#updateangularhttp)
+* [Post Post](#postpost)
+  * [Node.js - Post Post Request](#backendpost)
+    * [Post Request - body-parser](#postrequest)
+  * [Angular - Send a Post Request](#angularpost)
+* [MongoDB](#mongodb)
+  * [Node.js - Connect With MongoDB](#connectwithmongodb)
+    * [Create a Schema](#schema)
+    * [Angular - GET/POST Data MongoDB](#angulargettingdata)
+* [Delete Post](#deletepost)
+  * [Node.js - Delete Request](#nodedelete)
+  * [Angular - Delete Request](#angulardelete)
+* [Angular Routing](#angularrouting)
+* [Edit Post](#editpost)
+  * [Angular Edit Post](#frontendedit)
+    * [Angular Redirect](#redirect)
+  * [Node.js Edit Post](#backendedit)
 * [       ](#xxxxxxxxxxx)
 * [       ](#xxxxxxxxxxx)
 * [       ](#xxxxxxxxxxx)
 
-<h1 id='MEAN - Angular Social Media'></h1>
+<h1 id='mean'>MEAN - Angular Social Media</h1>
 
 <h2 id='installation'>Installation</h2>
 
@@ -107,7 +153,7 @@
       } 
   ```
 
-<h3 id='usecomponent'>How to Declare a Component</h3>
+<h3 id='declarecomponent'>How to Declare a Component</h3>
 
 [Go Back to Summary](#summary)
 
@@ -150,7 +196,7 @@
       <app-post-create></app-post-create>
   ```
 
-<h2 id='createmethod'>Create a Function/Method</h2>
+<h2 id='createmethod'>Function/Method</h2>
 
 [Go Back to Summary](#summary)
 
@@ -387,7 +433,7 @@
       <p>{{ newPost }}</p>
   ```
 
-<h2 id='style'>Style CSS</h2>
+<h3 id='style'>Style CSS</h3>
 
 [Go Back to Summary](#summary)
 
@@ -1456,52 +1502,52 @@
 * in `app.js`
   * Require the `body-parser` package
 
-```TypeScript
-    const express = require('express');
-    //! 3) Rquire body-parse to extrat the incoming body from the request
-    const bodyParser = require('body-parser');
+  ```TypeScript
+      const express = require('express');
+      //! 3) Rquire body-parse to extrat the incoming body from the request
+      const bodyParser = require('body-parser');
 
-    const app = express();
+      const app = express();
 
-    //+ 3.1) This will return a valid express middleware for parsing json data
-    app.use(bodyParser.json());
-    //+ 3.1) This will parse the url encode data
-    //-    3.1) Extended: false to onlly support default features
-    app.use(bodyParser.urlencoded({ extended: false }));
+      //+ 3.1) This will return a valid express middleware for parsing json data
+      app.use(bodyParser.json());
+      //+ 3.1) This will parse the url encode data
+      //-    3.1) Extended: false to onlly support default features
+      app.use(bodyParser.urlencoded({ extended: false }));
 
-    app.use((req, res, next) => {
-        res.setHeader('Access-Control-Allow-Origin', '*');
-        res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-Width, Content-Type, Accept');
-        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS');
-        next();
-    });
+      app.use((req, res, next) => {
+          res.setHeader('Access-Control-Allow-Origin', '*');
+          res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-Width, Content-Type, Accept');
+          res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS');
+          next();
+      });
 
-    //+ 3.2) Post Request - Middleware
-    app.post('/api/posts', (req, res, next) => {
-        console.log(req.body);
-        res.json(req.body);
-    });
+      //+ 3.2) Post Request - Middleware
+      app.post('/api/posts', (req, res, next) => {
+          console.log(req.body);
+          res.json(req.body);
+      });
 
-    app.get('/api/posts', (req, res, next) => {
-        const posts = [
-            {
-                id: '12312412313123',
-                title: 'First server-side post',
-                content: 'This is coming from the server!'
-            },
-            {
-                id: 'fas2312123132',
-                title: 'Second server-side post',
-                content: 'This is coming from the server too!'
-            }
-        ];
-        res.json({
-            message: 'Posts fetched successfully!',
-            posts
-        });
-    });
-    module.exports = app;
-```
+      app.get('/api/posts', (req, res, next) => {
+          const posts = [
+              {
+                  id: '12312412313123',
+                  title: 'First server-side post',
+                  content: 'This is coming from the server!'
+              },
+              {
+                  id: 'fas2312123132',
+                  title: 'Second server-side post',
+                  content: 'This is coming from the server too!'
+              }
+          ];
+          res.json({
+              message: 'Posts fetched successfully!',
+              posts
+          });
+      });
+      module.exports = app;
+  ```
 
 <h2 id='angularpost'>Angular - Send a Post Request</h2>
 
@@ -1555,28 +1601,28 @@
 
 * in `post.js`
 
-```JavaScript
-  const mongoose = require('mongoose');
-  const Schema = mongoose.Schema;
+  ```JavaScript
+    const mongoose = require('mongoose');
+    const Schema = mongoose.Schema;
 
-  const PostSchema = new Schema(
-      {
-          title: {
-              type: String,
-              required: true
-          },
-          content: {
-              type: String,
-              required: true
-          }
-      },
-      {
-          timestamps: true
-      }
-  );
+    const PostSchema = new Schema(
+        {
+            title: {
+                type: String,
+                required: true
+            },
+            content: {
+                type: String,
+                required: true
+            }
+        },
+        {
+            timestamps: true
+        }
+    );
 
-  module.exports = mongoose.model('Post', PostSchema);
-```
+    module.exports = mongoose.model('Post', PostSchema);
+  ```
 
 * in `app.js`
   * Require the `Post` Schema
@@ -1678,7 +1724,6 @@
 
 <h1 id='deletepost'>Delete Post</h1>
 
-
 <h2 id='nodedelete'>Node.js - Delete Request</h2>
 
 [Go Back to Summary](#summary)
@@ -1739,4 +1784,436 @@
               this.postsUpdate.next([...this.posts])
           })
       }
+  ```
+
+<h1 id='angularrouting'>Angular Routing</h1>
+
+[Go Back to Summary](#summary)
+
+* To enable angular routing we need to create a new file (new module) next to our `app.component`, and we named it like `app-routing.module.ts`
+
+  ```Bash
+    touch src/app/app-routing.moudle.ts
+  ```
+* An angular module is basic building blocks, angular analyzes to find out which features our app uses
+
+* in `app-routing.moudle.ts`
+  * We are going to create and export a normal class
+  * We need to decorate the class as an `@NgModule` to use as an angular **module**
+    * To do that we need to import the `{ NgModule }` from `@angular/core`
+  * Then we need to import the `{ RouterModule, Routes }` from `@angular/router` to handle the route configuration
+    * Routes are simply JavaScript objects where we define for which url which part of our app should be presented
+    * We need to create a new object type `Routes` tha hold an array of objects with the following structure
+  
+  ```TypeScript
+      const routes: Routes = [
+          {
+              path: '',                           // root route, don't need the /
+              component: PostListComponent        // the component that we want to serve
+          },
+          {
+              path: 'create',
+              component: PostCreateComponent
+          }
+      ]
+  ```
+  * Then we need to inform **angular module** to import the router module that we just created
+    * To do that, insed the `@NgModule` we `imports:[]` the module
+    * Inside the imports array, we import the `RouterModule.forRoot(routes)]` and pass our `routes` constant that we created
+    * And to use the router module out side of `AppRoutingModule` module that we created, we need to export using the `exports: [RouterModule]` array
+  
+  ```TypeScript
+      import { NgModule } from '@angular/core';
+      import { RouterModule, Routes } from '@angular/router';
+      import { PostListComponent } from './posts/post-list/post-list.component';
+      import { PostCreateComponent } from './posts/post-create/post-create.component';
+
+      const routes: Routes = [
+          {
+              path: '',
+              component: PostListComponent
+          },
+          {
+              path: 'create',
+              component: PostCreateComponent
+          }
+      ]
+
+      @NgModule({
+          imports: [RouterModule.forRoot(routes)],
+          exports: [RouterModule]
+      })
+      export class AppRoutingModule {}
+  ```
+
+* in `app.moudle.ts`
+  * We are going to import the `app-routing` module (good practice) instead of declaring everything in the `app-module` and polluting the module
+  * To do that, we import the `{ AppRoutingModule }` from `./app-routing.module`
+  * The we add to the `imports: []` array
+
+  ```TypeScript
+      ...
+      import { AppRoutingModule } from './app-routing.moudle';                         //! 11) Import the routing module
+
+      @NgModule({
+        declarations: [
+          ...
+        ],
+        imports: [
+          BrowserModule,
+          AppRoutingModule,         //+ 11.1) Unlock the AppRoutingModule
+          FormsModule,
+          BrowserAnimationsModule,
+          MatInputModule,
+          MatCardModule,
+          MatButtonModule,
+          MatToolbarModule,
+          MatExpansionModule,
+          HttpClientModule,
+        ],
+        providers: [],
+        bootstrap: [AppComponent]
+      })
+      export class AppModule { }
+  ```
+  
+* in `app.component.html`
+  * We need to refactor our html to use the routers
+  * To do that we need to provide a hook for angular router `<router-outlet>` which is provided by angular router package.
+    * we can use the `<router-outlet>` because we imported the `RouterModule` from `@angular/router` into our routing module
+
+  ```HTML
+      <app-header></app-header>
+      <main>
+          <router-outlet></router-outlet>
+      </main>
+  ```
+
+* in `header.component.html`
+  * Let's just add some links, so we can navigate through our app
+  * Angular has a `routerLink` that we can use with our `<a>` tag this way angular prevents the default (full refresh)
+    * We can use `routerLinkActive` to highlight the link when the user is on that page
+      * Angular material has another helper css class `mat-accent`
+
+  ```HTML
+      <mat-toolbar color="primary">
+          <a routerLink="/">
+              <span>MyMessages</span>
+          </a>
+          <span class="spacer"></span>
+          <ul>
+              <li>
+                  <a mat-button routerLink="/create" routerLinkActive="mat-accent">New Post</a>
+              </li>
+          </ul>
+      </mat-toolbar>
+  ```
+
+* in `header.component.css`
+
+  ```CSS
+    a {
+        text-decoration: none;
+        color: white;
+    }
+
+    ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .spacer {
+        flex: 1 1 auto;
+    }
+  ```
+
+<h1 id='editpost'>Edit Post</h1>
+
+<h2 id='frontendedit'>Angular Edit Post</h2>
+
+[Go Back to Summary](#summary)
+
+* We can re-use the `post-create.component` to edit a post
+  * Basically the `post-create.component` will be loaded from two different paths
+  * To do that we need to inject **id** into the component which is loaded though the router
+
+* in `app-routing.module.ts`
+  * Add another path to handle the `edit` post path
+
+  ```TypeScript
+      {
+          path: 'edit/:postId',
+          component: PostCreateComponent
+      }
+  ```
+
+* in `posts.service.ts`
+  * Create a new method `getPost()` to get a specific post from the server
+    * **Atention** we are **not** subscribing (`subscribe()`) in this file, we are going to subscribe when we call this method on the `post-create.component.ts` to handle when we directly access the link.
+  * And create a new method to updatePost
+
+  ```TypeScript
+      getPost(id: string) {                                   //! 8) Create a new method to find the post and return the post as an object
+          return this.http.get<{ _id: string, title: string, content: string }>(`http://localhost:3001/api/posts/${id}`);
+      }
+
+      updatePost(id: string, title: string, content: string) {
+          const post: Post = { id: id, title: title, content: content};
+          this.http.put(`http://localhost:3001/api/posts/${id}`, post)
+          .subscribe((data)=> {
+              const updatedPost = [...this.posts];
+              const oldPostIndex = updatedPost.findIndex((p) => p.id === post.id);
+              updatedPost[oldPostIndex] = post;
+              this.posts = updatedPost;
+              this.postsUpdate.next([...this.posts]);
+          })
+      }
+  ```
+
+* in `post-create.component.ts`
+  * We need to inject the `ActivedRoute` from `@angular/router` and bind it to a public variable (route)
+  * Because we want to keep the constructor lean, we will check if we have a `postId` through `OnInit` method
+    * To do so import `{ OnInit }` from `@angular/core`
+    * Then `implements OnInit` on our class
+    * then add `ngOnInit()` method wheter we have a `postId` or not
+      * We can extract the `postId` through the `ActivatedRoute` method/property called `paramMap`
+      * The `paramMap` is an **observable**, which we can `subscribe()`
+        * Just like any other built-in observables we never need to unsubscribe
+  * Renane our `onAddPost()` method to `onSavePost()` beacause we are using the same function to create a new psot or update a post
+
+  ```TypeScript
+      import { Component, OnInit } from '@angular/core';                                  //! 9) Import OnInit (componentDidMount)
+      import { NgForm } from '@angular/forms';
+      import { PostService } from '../posts.service';
+      import { ActivatedRoute, ParamMap } from '@angular/router';                         //! 8) Import the ActivatedRoute to get important informations from the current router
+                                                                                              //+ 8.1) Import the ParamMap to check if we have a postId
+      import { Post } from '../post.model';                                               //! 10) Import the post model
+
+      @Component({
+          selector: 'app-post-create',
+          templateUrl: './post-create.component.html',
+          styleUrls: ['./post-create.component.css']
+      })
+
+      export class PostCreateComponent implements OnInit {                                    //+ 9.1) Implements the OnInit
+          enteredTitle = "";
+          enteredContent = '';
+          private mode = 'create';                                                            //+ 8.2) Create a private mode just to check if we are in create or edit mode
+          private postId: string;                                                             //+ 8.3) Create a private varible type string and initially undefined
+          post: Post;                                                                         //+ 10.1) Create a public varible type Post
+
+          constructor(public postService: PostService, public route: ActivatedRoute) {        //+ 8.4) Bind the ActivatedRoute to a public variable
+          }
+          
+          onSavePost(form: NgForm) {
+              if (form.invalid) return;
+              if (this.mode == 'create') {                                                    //+ Check the type of the mode
+                  this.postService.addPost(form.value.title, form.value.content);                 //+ Call addPost function to create a new post
+              } else {
+                  this.postService.updatePost(this.postId, form.value.title, form.value.content); //+ Call updatePost function to update the post
+              }
+              form.resetForm();                                                               //+ 7.3) Just to reset the form after submiting
+          }
+
+          ngOnInit() {                                                                        //+ 9.1) Create ngOnInit() method
+              this.route.paramMap.subscribe((paramMap: ParamMap) => {                         //+ 8.5) Create paramMap variable type ParamMap
+                  if (paramMap.has('postId')) {                                                   //- 8.5.1) HAS - check if paramMap has a postId
+                      this.mode = 'edit';
+                      this.postId = paramMap.get('postId');                                       //- 8.5.2) GET - get the 'postId' - this is the same variable that we defined on our routes (:postId)
+                      this.postService.getPost(this.postId).subscribe((data) => {                 //- 8.5.3) With de postId, we call postService.getPost() to make http request then we subscribe to listen to changes (in the postService we didn't subscribe there thats why we are subscribing here)
+                          this.post = { id: data._id, title: data.title, content: data.content }  //- 8.5.4) Then we set the post to this new object that we are receiving from the server, so we can user in our html
+                      });
+                  } else {
+                      this.mode = 'create';
+                      this.postId = null;
+                  }
+              })
+          }
+      }
+  ```
+
+* in `post-list.component.html`
+  * We need to connect those modifications
+  * We need to change our EDIT button to an `<a>` tag
+    * use the `routerLink` to prevent the default
+    * we bind the property `routerLink` with `[]` to bind, then we pass with `[]`
+      * where, the first argument is a string `/edit`, and the second argument is the `post.id`
+      * `<a mat-button color="primary" [routerLink]="['/edit', post.id ]">EDIT</a>`
+
+  ```HTML
+      <mat-accordion multi="true" *ngIf="posts.length > 0">
+          <mat-expansion-panel *ngFor="let post of posts">
+              <mat-expansion-panel-header>
+                  {{ post.title }}
+              </mat-expansion-panel-header>
+              <p>{{ post.content }}</p>
+              <mat-action-row>
+                  <a mat-button color="primary" [routerLink]="['/edit', post.id ]">EDIT</a>
+                  <button mat-button color="warn" (click)="onDelete(post.id)">DELETE</button>
+              </mat-action-row>
+          </mat-expansion-panel>
+      </mat-accordion>
+      <p class="info-text mat-body-1" *ngIf="posts.length === 0">No Posts Added Yet!</p>
+  ```
+
+* in `post-create.component.html`
+  * We need to get the post (public variable) information from `posts.service.ts`
+  * We need to give to our input and textarea default values
+    * for that we need to wrap `ngModel` with `[]` then assign default values
+      * `[ngModel]="post?.title"` and `[ngModel]="post?.content"`
+        * the `post?`.content, the `?` checks if we have a post object to avoid errors
+
+  ```HTML
+      <mat-card>
+          <form (submit)="onSavePost(postForm)" #postForm="ngForm">
+              <mat-form-field>
+                  <input
+                      matInput
+                      type="text"
+                      name="title"
+                      #title="ngModel"
+                      placeholder="Post Title"
+                      [ngModel]="post?.title"
+                      required>
+                  <mat-error *ngIf="title.invalid">Invalid title</mat-error>
+              </mat-form-field>
+              <mat-form-field>
+                  <textarea 
+                      matInput
+                      rows="6"
+                      name="content"
+                      #content="ngModel"
+                      placeholder="Post Content"
+                      [ngModel]="post?.content"
+                      required>
+                  </textarea>
+                  <mat-error *ngIf="content.invalid">Invalid content</mat-error>
+              </mat-form-field>
+              <button mat-raised-button color="accent" type="submit">Save Post</button>
+          </form>
+      </mat-card>
+  ```
+
+<h3 id='redirect'>Angular Redirect</h3>
+
+[Go Back to Summary](#summary)
+
+* First we need to import the `{ Router }` from `@angular/router`;
+* Then we we need to bind and assign a private variable to the type of `Router`
+* To use the redirect, we just need to call the `.navigate()` method, and pass an array `["/"]` of segments (we always have to do this)
+  * `this.rouger.navigate(["/"]);`
+
+* in `posts.service.ts`
+
+  ```TypeScript
+      import { Post } from './post.model';
+      import { Injectable } from '@angular/core';
+      import { Subject } from 'rxjs';
+      import { HttpClient } from '@angular/common/http';
+      import { map } from 'rxjs/operators';
+      import { Router } from '@angular/router';                   //! 9) Import router to redirect
+
+      @Injectable({providedIn: 'root'})
+      export class PostService {
+          private posts: Post[] = [];
+          private postsUpdate = new Subject<Post[]>();
+
+          constructor(private http: HttpClient, private router: Router) { //+ 9.1) Inject and automatically bind to a property with a type of Router
+          }
+
+          getPosts() {
+              this.http.get<{message: string, posts: any}>('http://localhost:3001/api/posts')
+              .pipe(
+                  map((data) => {
+                      return data.posts.map((post) => {
+                          return {
+                              title: post.title,
+                              content: post.content,
+                              id: post._id
+                          }
+                      })
+                  })
+              )
+              .subscribe((transformedData)=> {
+                      this.posts = transformedData;
+                      this.postsUpdate.next([...this.posts]);
+                  });
+          }
+
+          addPost(title: string, content: string) {
+              const post: Post = { id: null, title: title, content:content};
+              this.http.post<{message: string, postId: string}>('http://localhost:3001/api/posts', post)
+              .subscribe((data) => {
+                      post.id = data.postId;
+                      this.posts.push(post);
+                      this.postsUpdate.next([...this.posts]);
+                      this.router.navigate(["/"]);                    //+ 9.2) Redirect to home page
+                  })
+          }
+
+          deletePost(postId: string) {
+              this.http.delete(`http://localhost:3001/api/posts/${postId}`)
+              .subscribe(() => {
+                  const updatePosts = this.posts.filter((post) => post.id !== postId);
+                  this.posts = updatePosts;
+                  this.postsUpdate.next([...this.posts])
+              })
+          }
+
+          getPostUpdateListener() {
+              return this.postsUpdate.asObservable();
+          }
+
+          getPost(id: string) {
+              return this.http.get<{ _id: string, title: string, content: string }>(`http://localhost:3001/api/posts/${id}`);
+          }
+
+          updatePost(id: string, title: string, content: string) {
+              const post: Post = { id: id, title: title, content: content};
+              this.http.put(`http://localhost:3001/api/posts/${id}`, post)
+              .subscribe((data)=> {
+                  console.log(data);
+                  const updatedPost = [...this.posts];
+                  const oldPostIndex = updatedPost.findIndex((p) => p.id === post.id);
+                  updatedPost[oldPostIndex] = post;
+                  this.posts = updatedPost;
+                  this.postsUpdate.next([...this.posts]);
+                  this.router.navigate(["/"]);                        //+ 9.3) Redirect to home page
+              })
+          }
+      }
+  ```
+
+<h2 id='backendedit'>Node.js Edit Post</h2>
+
+[Go Back to Summary](#summary)
+
+* In our back-end, now we need to create a new path to get the incoming request to edit a post
+
+* in `app.js`
+  * create two new middleware to handle the `Update Request` and `Get One Post request`
+
+  ```JavaScript
+      //+ 2.4) Update Request - Middleware
+      app.put('/api/posts/:id', (req, res, next) => {
+          const post = new Post({
+              _id: req.body.id,
+              title: req.body.title,
+              content: req.body.content
+          });
+          Post.updateOne({ _id: req.params.id }, post).then((result) => {
+              res.json({ message: 'Update successful!' });
+          });
+      });
+
+      //+ 2.5) Get Request Unique Post - Middleware
+      app.get('/api/posts/:id', async (req, res, next) => {
+          const post = await Post.findById(req.params.id);
+          if (post) {
+              res.json(post);
+          } else {
+              res.status(404).json({ message: 'Post not found' });
+          }
+      });
   ```

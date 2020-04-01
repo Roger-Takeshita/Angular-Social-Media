@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';                 //! 2) Import Inject
 import { Subject } from 'rxjs';                             //! 3) Import Subject - it's more or less an event emiter
 import { HttpClient } from '@angular/common/http';          //! 6) Import Http Client
 import { map } from 'rxjs/operators';                       //! 7) Import the map operator so we can use with pipe()
-
+import { Router } from '@angular/router';                   //! 9) Import router to redirect
 @Injectable({providedIn: 'root'})                               //+ 2.1) This makes angular aware of our service provider
                                                                 //+      Instead of declaring into 'app.module.ts'>'providers'
                                                                 //+      Inside the parenteses, we don't have to pass an argument, but we can pass a JavaScript object to configure this
@@ -13,8 +13,8 @@ export class PostService {
     private posts: Post[] = [];                                 //+ 1.1) Create a private variable with the Post structure
     private postsUpdate = new Subject<Post[]>();                //+ 3.1) Create a new instace of Subject, and pass a list of post as a payload
 
-    constructor(private http: HttpClient) {                     //+ 6.1) Inject and automatically bind to a property using private with a type of HttpClient
-
+    constructor(private http: HttpClient, private router: Router) { //+ 6.1) Inject and automatically bind to a property using private with a type of HttpClient
+                                                                    //+ 9.1) Inject and automatically bind to a property with a type of Router
     }
 
     getPosts() {                                                //+ 1.2) Create a getPost method
@@ -44,6 +44,7 @@ export class PostService {
                 post.id = data.postId;
                 this.posts.push(post);                          //+ 3.1) Update the post first
                 this.postsUpdate.next([...this.posts]);         //+ 3.2) then pushes/emit a new value to our store
+                this.router.navigate(["/"]);                    //+ 9.2) Redirect to home page
             })
     }
 
@@ -59,5 +60,23 @@ export class PostService {
     getPostUpdateListener() {                                   //+ 3.3) New method to getUpdateListener
         return this.postsUpdate.asObservable();                     //- 3.3.1) .asObservable(), this returns an object where we can listen but we cant emit
                                                                     //- 3.3.2) we still can emit inside this file but we cant emit from where we are receiving this reference
+    }
+
+    getPost(id: string) {                                   //! 8) Create a new method to find the post and return the post as an object
+        return this.http.get<{ _id: string, title: string, content: string }>(`http://localhost:3001/api/posts/${id}`);
+    }
+
+    updatePost(id: string, title: string, content: string) {
+        const post: Post = { id: id, title: title, content: content};
+        this.http.put(`http://localhost:3001/api/posts/${id}`, post)
+        .subscribe((data)=> {
+            console.log(data);
+            const updatedPost = [...this.posts];
+            const oldPostIndex = updatedPost.findIndex((p) => p.id === post.id);
+            updatedPost[oldPostIndex] = post;
+            this.posts = updatedPost;
+            this.postsUpdate.next([...this.posts]);
+            this.router.navigate(["/"]);                        //+ 9.3) Redirect to home page
+        })
     }
 }
